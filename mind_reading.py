@@ -19,6 +19,9 @@ from sklearn.model_selection import cross_val_score
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
+import os
+
+from skmultilearn.model_selection import iterative_train_test_split
 
 
 def load_data(file):
@@ -31,6 +34,8 @@ def load_data(file):
            Pandas DataFrame
     """
     return pd.read_csv(file, header=None)
+
+# NEEDS TWO PATHS ONE TO STORE
 
 
 def save_confusion_matrix(path, y_test, predictions, labels, participant, model, time_window1, time_window2):
@@ -48,10 +53,20 @@ def save_confusion_matrix(path, y_test, predictions, labels, participant, model,
     cm.index.name = 'Actual'
     cm.columns.name = 'Predicted'
 
+    # Create folder for CMs inside of data resources
+    if not os.path.exists(path + f'{time_window1}_{time_window2}'):
+        os.mkdir(path + f'{time_window1}_{time_window2}')
+
+    # Store confusion matrix as csv
+    cm.to_csv(path + f'{time_window1}_{time_window2}/' +
+              model + f'_cm_{time_window1}-{time_window2}.csv')
+
+    plt.figure(figsize=(18, 18))
+
     cm_fig = sns.heatmap(cm, annot=True, fmt='')
-    figure = cm_fig.get_figure()
-    figure.savefig(
-        path + model + f'_cm_{time_window1}-{time_window2}.png', dpi=400)
+    plt.savefig(
+        path + f'{time_window1}_{time_window2}/' + model + f'_cm_{time_window1}-{time_window2}.png', dpi=400)
+    plt.close()
 
 
 def concatenate_data(df1, df2):
@@ -292,7 +307,7 @@ def prepare_ml_df(ml_df, scale=False):
 
     # Splitting the data to feed into the ML Classifier model
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.3, random_state=42)
+        X, y, test_size=0.35, random_state=42)
 
     return X_train, X_test, y_train, y_test
 
